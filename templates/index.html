@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skin Cancer Detection</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+</head>
+<body>
+    <!-- Background Video -->
+    <video autoplay muted loop id="bgVideo">
+        <source src="/static/background.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <!-- Main Content -->
+    <div class="container">
+        <header class="animate__animated animate__fadeInDown">
+            <h1>Skin Cancer Detection</h1>
+            <p>Upload an image of a skin lesion to check for cancer.</p>
+        </header>
+        
+        <main class="animate__animated animate__fadeInUp">
+            <form id="uploadForm">
+                <label for="imageInput" class="upload-label animate__animated animate__pulse animate__infinite">
+                    <input type="file" id="imageInput" accept="image/*" required>
+                    <span>Click to Select an Image</span>
+                </label>
+                <button type="submit" class="btn-submit animate__animated animate__bounceIn">Detect Cancer</button>
+            </form>
+            <div id="preview" class="preview-container"></div> <!-- Image preview container -->
+            <div id="result" class="result"></div> <!-- Prediction result -->
+        </main>
+        
+        <footer>
+            <p>Powered by AI &copy; 2024 SkinCheck</p>
+        </footer>
+    </div>
+    <script src="/static/script.js"></script>
+</body>
+</html>
