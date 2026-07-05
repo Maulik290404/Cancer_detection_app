@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+.env
+*.egg-info/
+
+# Editors / OS
+.DS_Store
+Thumbs.db
+
+# Test / cache
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Model artifacts — track these via Git LFS or an external store, not git
+*.keras
+*.h5
+*.pb
+*.onnx
+*.tflite
+
+# Local logs / uploads
+*.log
+uploads/

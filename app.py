@@ -1,48 +1,80 @@
-from flask import Flask, request, render_template, jsonify
-from flask_cors import CORS
-from tensorflow.keras.models import load_model
-from PIL import Image
-import numpy as np
+import logging
 import os
 
-# Initialize Flask app
-app = Flask(__name__)
-CORS(app)
+import numpy as np
+from flask import Flask, jsonify, render_template, request
+from flask_cors import CORS
+from PIL import Image, UnidentifiedImageError
+from tensorflow.keras.models import load_model
+from werkzeug.exceptions import RequestEntityTooLarge
 
-# Load the ML model
-MODEL_PATH = "D:/Cancer_detection_app/built_model.keras"  # Ensure the model is in the same directory
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+MODEL_PATH = os.environ.get("MODEL_PATH", "./built_model.keras")
+MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "10"))
+ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "*")
+IMAGE_SIZE = (512, 512)
+DECISION_THRESHOLD = float(os.environ.get("DECISION_THRESHOLD", "0.5"))
+
+app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_MB * 1024 * 1024
+CORS(app, resources={r"/predict": {"origins": ALLOWED_ORIGINS}})
+
 if not os.path.exists(MODEL_PATH):
     raise FileNotFoundError(f"Model file '{MODEL_PATH}' not found!")
 model = load_model(MODEL_PATH)
 
-# Route to serve the frontend
+
 @app.route("/", methods=["GET"])
 def index():
-    return render_template("index.html")  # Renders the main HTML page
+    return render_template("index.html")
 
-# Route for prediction API
+
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({"status": "ok"})
+
+
 @app.route("/predict", methods=["POST"])
 def predict():
     if "image" not in request.files:
         return jsonify({"error": "No file uploaded"}), 400
 
-    # Get the uploaded image
     img_file = request.files["image"]
+    if not img_file.filename:
+        return jsonify({"error": "Empty file"}), 400
 
     try:
-        # Preprocess the image
-        img = Image.open(img_file).resize((512, 512))  # Adjust input size as per model
-        img_array = np.array(img) / 255.0  # Normalize pixel values
-        img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
+        img = Image.open(img_file).convert("RGB").resize(IMAGE_SIZE)
+    except UnidentifiedImageError:
+        return jsonify({"error": "Uploaded file is not a valid image"}), 400
 
-        # Make a prediction
-        prediction = model.predict(img_array)
-        result = {"prediction": int(prediction[0][0] > 0.5)}  # Binary output: 1 (malignant), 0 (benign)
+    img_array = np.expand_dims(np.array(img, dtype=np.float32) / 255.0, axis=0)
 
-        return jsonify(result)
+    try:
+        probability = float(model.predict(img_array, verbose=0)[0][0])
+    except Exception:
+        logger.exception("Model inference failed")
+        return jsonify({"error": "Inference failed"}), 500
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return jsonify(
+        {
+            "prediction": int(probability > DECISION_THRESHOLD),
+            "probability": probability,
+            "threshold": DECISION_THRESHOLD,
+        }
+    )
+
+
+@app.errorhandler(RequestEntityTooLarge)
+def handle_too_large(_):
+    return jsonify({"error": f"File exceeds {MAX_UPLOAD_MB} MB limit"}), 413
+
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(
+        debug=os.environ.get("FLASK_DEBUG") == "1",
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", "5000")),
+    )

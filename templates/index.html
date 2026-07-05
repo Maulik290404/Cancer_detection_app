@@ -8,31 +8,34 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 </head>
 <body>
-    <!-- Background Video -->
-    <video autoplay muted loop id="bgVideo">
-        <source src="/static/background.mp4" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
-
-    <!-- Main Content -->
     <div class="container">
         <header class="animate__animated animate__fadeInDown">
+            <div class="logo-container">
+                <img src="/static/Designer.jpeg" alt="Skin Cancer Detection" class="logo">
+            </div>
             <h1>Skin Cancer Detection</h1>
-            <p>Upload an image of a skin lesion to check for cancer.</p>
+            <p>Upload a photo of a skin lesion for a preliminary screening.</p>
         </header>
-        
+
         <main class="animate__animated animate__fadeInUp">
             <form id="uploadForm">
-                <label for="imageInput" class="upload-label animate__animated animate__pulse animate__infinite">
+                <label for="imageInput" class="upload-label">
                     <input type="file" id="imageInput" accept="image/*" required>
                     <span>Click to Select an Image</span>
                 </label>
-                <button type="submit" class="btn-submit animate__animated animate__bounceIn">Detect Cancer</button>
+                <button type="submit" class="btn-submit">Analyze Image</button>
             </form>
-            <div id="preview" class="preview-container"></div> <!-- Image preview container -->
-            <div id="result" class="result"></div> <!-- Prediction result -->
+            <div id="preview" class="preview-container"></div>
+            <div id="result" class="result" role="status" aria-live="polite"></div>
         </main>
-        
+
+        <section class="disclaimer" aria-label="Medical disclaimer">
+            <strong>Not a medical diagnosis.</strong>
+            This tool is for educational and research purposes only.
+            Results may be inaccurate. Always consult a licensed dermatologist
+            for any concerns about a skin lesion.
+        </section>
+
         <footer>
             <p>Powered by AI &copy; 2024 SkinCheck</p>
         </footer>
